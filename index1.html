@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Resume | Abdelkader RAHIM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chosen Palette: Modern Professional (Base: bg-gray-50, Cards: bg-white, Text: text-gray-800, Accent: text-blue-600) --><!-- Application Structure Plan: A side-navigation SPA with four main sections: Profile (Summary), Career Path (Experience), Skills, and Education. This structure is task-oriented, allowing a user (e.g., recruiter) to immediately navigate to the most relevant information. The default 'Profile' view provides a high-level summary. The 'Career Path' section is the main interactive component, featuring a chart for a visual overview of role durations and interactive tabs/buttons to "drill down" into specific job details. This non-linear, interactive approach is chosen for superior usability and exploration compared to a static, linear resume. --><!-- Visualization & Content Choices: 1. Resume Info: Professional Experience (list of jobs and dates). Goal: Show career progression and time-in-role. Viz/Method: Horizontal Bar Chart (Chart.js). Interaction: Visual summary of durations. Justification: Provides at-a-glance understanding of candidate's journey, which a text list cannot. 2. Resume Info: Job Descriptions (bullet points). Goal: Allow detailed exploration on demand. Viz/Method: HTML content blocks. Interaction: JS-powered tabs/buttons (one for each job) that toggle visibility. Justification: Prevents overwhelming user with long text; makes experience interactive. 3. Resume Info: Skills List. Goal: Organize and present. Viz/Method: HTML/Tailwind CSS Grid with "pills" or "tags". Interaction: Hover effects. Justification: More visually scannable and modern than a simple bullet list. 4. Resume Info: Education. Goal: Inform. Viz/Method: HTML "cards". Justification: Clearly separates distinct qualifications. --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            @apply w-full text-left px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-200 hover:text-blue-600 transition-colors duration-200;
+        }
+        .nav-link.active {
+            @apply bg-blue-100 text-blue-700 font-semibold;
+        }
+        .job-tab {
+            @apply px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition-colors duration-200;
+        }
+        }
+        .job-tab.active {
+            @apply bg-blue-600 text-white;
+        }
+        .job-tab:not(.active) {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans leading-relaxed text-gray-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        
+        <aside class="w-full md:w-64 bg-white md:border-r border-gray-200 p-6 shadow-lg md:shadow-none">
+            <div class="sticky top-6">
+                <!-- IMPORTANT: Upload your photo as 'profile.jpg' to the same folder as this index.html file -->
+                <img id="profile-pic" src="profile.jpg" alt="Abdelkader RAHIM Profile Picture" class="rounded-full w-60 h-60 mx-auto mb-4 border-4 border-white shadow-lg object-cover" onerror="this.src='https://placehold.co/128x128/e0e7ff/3730a3?text=AR'; this.onerror=null;">
+                <h1 class="text-2xl font-bold text-gray-900 text-center md:text-left">ABDELKADER RAHIM</h1>
+                <h2 class="text-md text-blue-600 font-medium mb-6 text-center md:text-left">Aeronautical Engineer & Planning Professional</h2>
+                
+                <nav class="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2" id="main-nav">
+                    <button class="nav-link active" data-target="profile">
+                        <span class="mr-2">👤</span> Profile
+                    </button>
+                    <button class="nav-link" data-target="career">
+                        <span class="mr-2">📈</span> Career Path
+                    </button>
+                    <button class="nav-link" data-target="skills">
+                        <span class="mr-2">🛠️</span> Skills
+                    </button>
+                    <button class="nav-link" data-target="education">
+                        <span class="mr-2">🎓</span> Education
+                    </button>
+		    <button class="nav-link" data-target="contact">
+                        <span class="mr-2">✉️</span> Contact
+                    </button>
+               </nav>
+               <div class="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">Dark Mode</span>
+                    <label for="dark-mode-toggle" class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="dark-mode-toggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10 overflow-auto">
+            
+            <section id="profile" class="page-section space-y-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Professional Profile</h2>
+                    <p class="text-lg text-gray-700">
+                        This section provides a high-level summary of Abdelkader's professional identity and core expertise. It serves as a quick introduction to his qualifications as an Aeronautical Engineer and Planning Professional.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-3">Summary</h3>
+                    <p class="text-gray-700">
+                        Highly analytical Aeronautical Engineer and results-driven Planning Professional. Expertise in Communication, Navigation, and Surveillance (CNS/ATM) systems, electronics, and telecommunications. Proven ability to optimize industrial operations, manage complex logistics (e.g., transport and fleet), and lead teams to ensure strict compliance with quality and safety standards. Proficient in data analysis, KPI tracking, and process automation using Power BI and Excel.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-3">Contact Information</h3>
+                    <ul class="space-y-2 text-gray-700">
+                        <li><strong>Email:</strong> aekrahim96@gmail.com</li>
+                        <li><strong>Phone:</strong> 07 90 97 86 35</li>
+                        <li><strong>Address:</strong> Cité AADL 1500 Logt. Ain Malha Alger</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="career" class="page-section space-y-6 hidden">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Interactive Career Path</h2>
+                    <p class="text-lg text-gray-700">
+                        Explore Abdelkader's professional experience interactively. The chart below visualizes the duration (in months) of each role, providing an at-a-glance overview of his career progression. Click the tabs below the chart to drill down into the specific responsibilities and achievements for each position.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Career Progression (Months in Role)</h3>
+                    <div class="chart-container">
+                        <canvas id="careerChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex flex-wrap gap-2 mb-6" id="job-tabs">
+                        <button class="job-tab active" data-target="job-planning-engineer">Planning Engineer</button>
+                        <button class="job-tab" data-target="job-coating-manager">Coating Area Manager</button>
+                        <button class="job-tab" data-target="job-administrator">Administrator</button>
+                        <button class="job-tab" data-target="job-sales-rep">Sales Representative</button>
+                    </div>
+
+                    <div id="job-descriptions" class="space-y-4">
+                        
+                        <div id="job-planning-engineer" class="job-description">
+                            <h4 class="text-xl font-semibold">Planning Engineer</h4>
+                            <p class="text-md text-gray-600 mb-2">TAYAL S.P.A | August 2025 – Present</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Developed and executed daily, weekly, and monthly production schedules for dyeing and finishing units.</li>
+                                <li>Coordinated closely with production and quality teams to streamline workflows, ensuring timely order completion.</li>
+                                <li>Monitored actual vs. planned production, prepared detailed variance reports, and implemented corrective actions to minimize delays.</li>
+                                <li>Created and automated robust Excel-based dashboards to track key performance indicators (KPIs) such as output and efficiency.</li>
+                            </ul>
+                        </div>
+
+                        <div id="job-coating-manager" class="job-description hidden">
+                            <h4 class="text-xl font-semibold">Coating Area Manager</h4>
+                            <p class="text-md text-gray-600 mb-2">SARL MODELUX REVET | (Jul 2024 – Aug 2025) & (Apr 2023 – Apr 2024)</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Oversaw all coating activities involving ovens, an extruder, and a brushing machine.</li>
+                                <li>Managed and directed work teams, coordinated operations, and ensured strict compliance with quality and safety standards.</li>
+                            </ul>
+                        </div>
+
+                        <div id="job-administrator" class="job-description hidden">
+                            <h4 class="text-xl font-semibold">Administrator</h4>
+                            <p class="text-md text-gray-600 mb-2">EURL EVEN PRO BUSINESS | April 2024 – June 2024</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Managed logistics and transport operations by scheduling missions, monitoring shipments, and overseeing the transport fleet.</li>
+                                <li>Handled administrative and financial duties, including managing budgets and contracts.</li>
+                                <li>Drafted required daily and monthly operational reports and prepared job postings and advertisements.</li>
+                                <li>Ensured compliance for all necessary documents, including permits, insurance, and contracts.</li>
+                            </ul>
+                        </div>
+
+                        <div id="job-sales-rep" class="job-description hidden">
+                            <h4 class="text-xl font-semibold">Sales Representative</h4>
+                            <p class="text-md text-gray-600 mb-2">LAMDJA SERVICES | August 2021 – March 2023</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Offered a wide range of office supplies, professional equipment, and IT consumables.</li>
+                                <li>Performed technical repair of PCs’ software and hardware.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section id="skills" class="page-section space-y-6 hidden">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Core Competencies & Skills</h2>
+                    <p class="text-lg text-gray-700">
+                        This section provides a categorized overview of Abdelkader's technical, managerial, and linguistic skills. The "pill" format allows for a quick scan of his key capabilities.
+                    </p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Aeronautical & Technical Engineering</h3>
+                <div class="space-y-4">
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">CNS/ATM Systems & Telecommunications (Expert)</span>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">Preventive & Corrective Maintenance (Advanced)</span>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">Data Link & Signal Processing (Proficient)</span>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: 70%"></div>
+                        </div>
+                    </div>
+                </div>
+                <h4 class="text-lg font-semibold mt-6 mb-3">Other Technical Skills</h4>
+                <div class="flex flex-wrap gap-2">
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Satellite Techniques</span>
+                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Electronic Equipment Installation</span>
+                </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Operations Management & Planning</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Production Scheduling</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Logistics Planning</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Fleet Management</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Budget Management</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">KPI Tracking</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Corrective Action Implementation</span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Quality & Safety Compliance</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Software & Tools</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">MATLAB</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">C#\C++</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">MULTISIM & PROTEUS</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-module">Microsoft Office</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">Power BI</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">ERP</span>
+                        <span class="bg-gray-200 text-gray-800 px-3 py-1 rounded-full font-medium">Windows OS</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Languages</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">Arabic</span>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">English</span>
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">French (DELF B2)</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="education" class="page-section space-y-6 hidden">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Education & Certifications</h2>
+                    <p class="text-lg text-gray-700">
+                        This section outlines the formal academic qualifications and certifications that form the foundation of Abdelkader's technical expertise.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-blue-700">Master’s Degree (Aeronautical Engineering)</h3>
+                        <p class="text-md font-medium text-gray-800 mb-2">Institute of Aeronautics and Space Studies, BLIDA (2020)</p>
+                        <p class="text-gray-600 mb-2"><strong>Specialization:</strong> CNS/ATM (Communication, Navigation, and Surveillance / Air Traffic Management)</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li>Coursework covered data link research (signal processing, telecommunications, networks), satellite techniques.</li>
+                            <li>Specialization in the installation and maintenance of electronic equipment.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-blue-700">Bachelor’s Degree (Aeronautical Technician)</h3>
+                        <p class="text-md font-medium text-gray-800 mb-2">Institute of Aeronautics and Space Studies, BLIDA (2018)</p>
+                        <p class="text-gray-600 mb-2"><strong>Specialization:</strong> « INSTALLATIONS »</p>
+                        <ul class="list-disc list-inside space-y-1 text-gray-700">
+                            <li>Academic training included both electrical and aeronautical engineering.</li>
+                            <li>Focus on preventive and corrective maintenance of electronic installations and equipment.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-md md:col-span-2">
+                        <h3 class="text-xl font-semibold text-blue-700">French Language Diploma (DELF B2)</h3>
+                        <p class="text-md font-medium text-gray-800 mb-2">French Institute of Algeria – Oran branch (2020)</p>
+                        <p class="text-gray-700">Demonstrates advanced proficiency in the French language.</p>
+                    </div>
+                </div>
+            </section>
+            <section id="contact" class="page-section space-y-6 hidden">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Contact Abdelkader</h2>
+                    <p class="text-lg text-gray-700">
+                        Interested in collaboration or have an opportunity? Please use the form below to send a message directly. I aim to respond within 24-48 hours.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <form action="https://formspree.io/f/xanllapj" method="POST" class="space-y-4">
+                        
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Your Name</label>
+                            <input type="text" name="name" id="name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Your Email</label>
+                            <input type="email" name="_replyto" id="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                            <textarea name="message" id="message" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                            Send Message
+                        </button>
+                        
+                    </form>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const navLinks = document.querySelectorAll('#main-nav .nav-link');
+            const sections = document.querySelectorAll('.page-section');
+            const jobTabs = document.querySelectorAll('#job-tabs .job-tab');
+            const jobDescriptions = document.querySelectorAll('.job-description');
+            const profilePic = document.getElementById('profile-pic');
+
+            // --- Image paths for each section ---
+            // IMPORTANT: Replace these placeholder links with your actual image file names
+            // (e.g., 'career.jpg', 'skills.jpg', 'education.jpg')
+            const imageMap = {
+                profile: 'profile3.png',
+                career: 'profile2.png',
+                skills: 'profile1.png',
+                education: 'profile4.png'
+            };
+
+            const placeholderMap = {
+                profile: 'https://placehold.co/128x128/e0e7ff/3730a3?text=AR',
+                career: 'https://placehold.co/128x128/dbeafe/1e3a8a?text=Career',
+                skills: 'https://placehold.co/128x128/d1fae5/065f46?text=Skills',
+                education: 'https://placehold.co/128x128/fef3c7/92400e?text=Edu'
+            };
+            
+            function showSection(targetId) {
+                sections.forEach(section => {
+                    section.classList.toggle('hidden', section.id !== targetId);
+                });
+                navLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.target === targetId);
+                });
+
+                // Change profile picture based on the active section
+                const newImgSrc = imageMap[targetId] || imageMap.profile;
+                const newPlaceholder = placeholderMap[targetId] || placeholderMap.profile;
+
+                profilePic.src = newImgSrc;
+                profilePic.onerror = function() {
+                    this.src = newPlaceholder;
+                    this.onerror = null; // Prevent infinite loop if placeholder also fails
+                };
+            }
+
+            function showJob(targetId) {
+                jobDescriptions.forEach(desc => {
+                    desc.classList.toggle('hidden', desc.id !== targetId);
+                });
+                jobTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.target === targetId);
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    showSection(link.dataset.target);
+                });
+            });
+
+            jobTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    showJob(tab.dataset.target);
+                });
+            });
+
+            showSection('profile');
+            showJob('job-planning-engineer');
+
+            const ctx = document.getElementById('careerChart').getContext('2d');
+            const careerChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Planning Eng (Aug 2025 - Present)',
+                        'Coating Mgr (Jul 2024 - Aug 2025)',
+                        'Admin (Apr 2024 - Jun 2024)',
+                        'Coating Mgr (Apr 2023 - Apr 2024)',
+                        'Sales Rep (Aug 2021 - Mar 2023)'
+                    ],
+                    datasets: [{
+                        label: 'Months in Role',
+                        data: [3, 14, 3, 12, 20],
+                        backgroundColor: [
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(255, 159, 64, 0.6)',
+                            'rgba(54, 162, 235, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(54, 162, 235, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Duration: ${context.raw} months`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Duration (Months)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                autoSkip: false,
+                                callback: function(value, index, values) {
+                                    const label = this.getLabelForValue(value);
+                                    if (label.length > 25) {
+                                        return label.substring(0, 25) + '...';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
